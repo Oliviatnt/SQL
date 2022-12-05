@@ -1,0 +1,16 @@
+2.4 База данных «Интернет-магазин книг», запросы на выборку (с вложенным запросом, сначала создается основная таблица, затем она вкладывается в следующий запрос)
+
+SELECT title, SUM(sum_amount) AS Количество, SUM(sum_price) AS Сумма
+FROM 
+     (SELECT title, SUM(buy_archive.amount) AS sum_amount, SUM(buy_archive.amount*buy_archive.price) AS sum_price
+FROM buy_archive INNER JOIN book USING (book_id)
+GROUP BY title
+UNION ALL
+SELECT title, SUM(buy_book.amount) AS sum_amount, SUM(buy_book.amount*price) AS sum_price
+FROM book INNER JOIN buy_book USING (book_id)
+          INNER JOIN buy USING (buy_id)
+          INNER JOIN buy_step USING (buy_id)   
+WHERE date_step_end IS NOT NULL AND step_id = 1
+GROUP BY title) query_in
+GROUP BY title
+ORDER BY 3 DESC
